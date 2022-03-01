@@ -1,0 +1,30 @@
+name: roaster_repository
+description: A Roaster Device Repository
+version: 1.1.1
+publish_to: none
+
+environment:
+  sdk: ">=2.15.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bluetooth_serial:
+    path: packages/flutter_bluetooth_serial-android12
+  flutter_blue:
+    path: packages/flutter_blue-enhanced
+  app_settings:
+    path: packages/app_settings-enhanced
+  equatable: ^2.0.3
+  enum_to_string: ^2.0.1
+  rxdart: ^0.27.0
+  permission_handler: ^9.2.0
+  device_info_plus: ^3.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^1.0.0
+
+flutter:

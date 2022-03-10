@@ -30,6 +30,11 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       _sinkBluetoothState(
           latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
     });
+    /**
+     *
+     * TODO: Add machine listen state
+     *
+     */
   }
 
   @override
@@ -241,7 +246,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
     log('> trying-to-disconnect-subscription', name: fn);
     try {
-      _rawDataController.cancel();
+      _rawDataController?.cancel();
       log('> disconnect-subscription-success', name: fn);
     } catch (e) {
       const errorCode = 'disconnect-subscription-error';

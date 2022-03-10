@@ -18,7 +18,7 @@ part 'serial_api.dart';
 
 abstract class BluetoothBaseAPI<Machine extends RoasterMachine,
     BluetoothDevice> {
-  late StreamSubscription<List<int>> _rawDataController;
+  StreamSubscription<List<int>>? _rawDataController;
 
   final StreamController<Machine> _machineController;
   final StreamController<LakoneBluetoothState> _bluetoothController;

@@ -132,21 +132,55 @@ class Record extends Insight {
 
   @override
   String toString() {
-    var time = environment.time.toString();
-    var et = environment.et.toString();
-    var bt = environment.bt.toString();
-    var isStarted = control.start ? '1' : '0';
-    var btRor = environment.btRor.toString();
-    var heater = control.heater.toString();
-    var airflow = control.airflow.toString();
-    var charge = control.charge ? '1' : '0';
-    var drum = control.drum ? '1' : '0';
-    var firstCrack = control.firstCrack ? '1' : '0';
-    var discharge = control.discharge ? '1' : '0';
-    var cooling = control.cooling ? '1' : '0';
-    var rorStatus = showRor ? '1' : '0';
-    var dryEnd = control.dryEnd ? '1' : '0';
-    return '$time,$et,$bt,$isStarted,$btRor,$heater,$airflow,$charge,$drum,$firstCrack,$discharge,$cooling,$rorStatus,$dryEnd';
+    final values = toList();
+    var output = '';
+
+    for (var i = 0; i < values.length; i++) {
+      if (i != values.length - 1) {
+        output += '${values[i]},';
+      } else {
+        output += values[i];
+      }
+    }
+
+    return output;
+  }
+
+  List<String> toList() {
+    /// CSV Structure
+    /// 0   : Time
+    /// 1   : ET
+    /// 2   : BT
+    /// 3   : isStarted
+    /// 4   : ROR
+    /// 5   : Heater
+    /// 6   : Airflow
+    /// 7   : Status charge (ON/OFF)
+    /// 8   : Status drum (ON/OFF)
+    /// 9   : Status first crack (ON/OFF)
+    /// 10  : Status discharge (ON/OFF)
+    /// 11  : Status cooling (ON/OFF)
+    /// 12  : RoR status
+    /// 13  : Dry End
+
+    final values = <String>[
+      environment.time.toString(),
+      environment.et.toString(),
+      environment.bt.toString(),
+      control.start ? '1' : '0',
+      environment.btRor.toString(),
+      control.heater.toString(),
+      control.airflow.toString(),
+      control.charge ? '1' : '0',
+      control.drum ? '1' : '0',
+      control.firstCrack ? '1' : '0',
+      control.discharge ? '1' : '0',
+      control.cooling ? '1' : '0',
+      showRor ? '1' : '0',
+      control.dryEnd ? '1' : '0',
+    ];
+
+    return values;
   }
 
   String toIC() {

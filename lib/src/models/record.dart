@@ -4,7 +4,6 @@ class Record extends Insight {
   final Environment environment;
   final Control control;
 
-  /// Controller
   final bool showRor;
 
   const Record({

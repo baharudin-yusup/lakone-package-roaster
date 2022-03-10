@@ -1,6 +1,6 @@
 name: roaster_repository
 description: A Roaster Device Repository
-version: 1.1.1
+version: 1.1.2
 publish_to: none
 
 environment:
@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bluetooth_serial:
-    path: packages/flutter_bluetooth_serial-android12
+    path: packages/flutter_bluetooth_serial-enhanced
   flutter_blue:
     path: packages/flutter_blue-enhanced
   app_settings:

@@ -156,7 +156,7 @@ packages:
   flutter_bluetooth_serial:
     dependency: "direct main"
     description:
-      path: "packages/flutter_bluetooth_serial-android12"
+      path: "packages/flutter_bluetooth_serial-enhanced"
       relative: true
     source: path
     version: "0.4.0"

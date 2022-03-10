@@ -30,6 +30,11 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       _sinkBluetoothState(
           latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
     });
+    /**
+     *
+     * TODO: Add machine listen state
+     *
+     */
   }
 
   @override

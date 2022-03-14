@@ -1,6 +1,6 @@
 name: roaster_repository
 description: A Roaster Device Repository
-version: 1.1.2
+version: 1.1.3
 publish_to: none
 
 environment:

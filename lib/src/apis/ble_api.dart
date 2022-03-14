@@ -17,8 +17,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       final BluetoothHardwareStatus hardwareStatus =
           isOn ? BluetoothHardwareStatus.on : BluetoothHardwareStatus.off;
       log('>> change-bluetooth-state-to: ${isOn ? "on" : "off"}', name: fn);
-      _sinkBluetoothState(
-          latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
+      _sinkBluetoothState(latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
     });
 
     ble.state.listen((state) {
@@ -27,8 +26,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
           isOn ? BluetoothHardwareStatus.on : BluetoothHardwareStatus.off;
 
       log('>> change-bluetooth-state-to: ${isOn ? "on" : "off"}', name: fn);
-      _sinkBluetoothState(
-          latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
+      _sinkBluetoothState(latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
     });
     /**
      *
@@ -41,8 +39,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
   Future<BleRoasterMachine> connect(BleRoasterMachine rawMachine) async {
     log('[connect-started]', name: fn);
     log('> device: ${rawMachine.device.toString()}', name: fn);
-    _sinkBluetoothState(latestBluetoothState.copyWith(
-        connectionStatus: BluetoothConnectionStatus.connecting));
+    _sinkBluetoothState(
+        latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.connecting));
 
     /// Cek apakah mesin sudah terkoneksi sebelumnya
     /// jika sudah, maka putuskan sambungan
@@ -50,8 +48,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     log('> check-if-device-is-already-connected', name: fn);
     final bool isConnected = await rawMachine.isConnected;
     if (isConnected) {
-      log('> device-already-connected: trying-to-disconnect',
-          level: 100, name: fn);
+      log('> device-already-connected: trying-to-disconnect', level: 100, name: fn);
       try {
         await rawMachine.device.disconnect();
         log('> disconnect-success', level: 100, name: fn);
@@ -85,8 +82,15 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
         });
         log('> connect-success', name: fn);
       } catch (e) {
+        late final String message;
+        if (e is String && e == 'timeout-exception') {
+          message =
+              'The connection waiting time has run out, please check if your smartphone is too far from the machine or if another user is connected';
+        } else {
+          message = e.toString();
+        }
+
         String errorCode = 'connect-error';
-        String message = e.toString();
         log('> $errorCode: $message', name: fn, level: 1000);
 
         final error = CustomError(code: errorCode, message: message);
@@ -192,8 +196,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     );
 
     _latestMachine = validMachine;
-    _sinkBluetoothState(latestBluetoothState.copyWith(
-        connectionStatus: BluetoothConnectionStatus.connected));
+    _sinkBluetoothState(
+        latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.connected));
 
     return validMachine;
   }
@@ -215,8 +219,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     }
 
     log('[start-disconnect]', name: fn);
-    _sinkBluetoothState(_latestBluetoothState.copyWith(
-        connectionStatus: BluetoothConnectionStatus.disconnecting));
+    _sinkBluetoothState(
+        _latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.disconnecting));
 
     late BleRoasterMachine verifiedMachine;
 
@@ -261,8 +265,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     }
 
     log('> disconnect-success', level: 100, name: fn);
-    _sinkBluetoothState(_latestBluetoothState.copyWith(
-        connectionStatus: BluetoothConnectionStatus.disconnected));
+    _sinkBluetoothState(
+        _latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.disconnected));
     return verifiedMachine;
   }
 
@@ -273,9 +277,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
     log('> trying-to-discover-services', name: fn);
     try {
-      services = await device
-          .discoverServices()
-          .timeout(const Duration(seconds: 5), onTimeout: () {
+      services = await device.discoverServices().timeout(const Duration(seconds: 5), onTimeout: () {
         log('> discover-services-timeout', name: fn);
         throw 'discover-services-timeout';
       });
@@ -300,8 +302,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       if (serviceUuid == validServiceUuid) {
         serviceOk = true;
         for (var characteristic in service.characteristics) {
-          final characteristicUud =
-              characteristic.uuid.toString().toUpperCase();
+          final characteristicUud = characteristic.uuid.toString().toUpperCase();
           if (characteristicUud == validCharacteristicUuid) {
             characteristicOk = true;
             validCharacteristic = characteristic;
@@ -313,8 +314,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     /// Jika UUI tidak dikenali maka putuskan sambungan
     if (!serviceOk || !characteristicOk) {
       const errorCode = 'machine-state-invalid';
-      final message =
-          '[service: $serviceOk] [characteristic: $characteristicOk]';
+      final message = '[service: $serviceOk] [characteristic: $characteristicOk]';
       log('> $errorCode: $message', level: 500, name: fn);
       log('> trying-to-disconnect', level: 100, name: fn);
 
@@ -343,8 +343,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     final character = await _searchCharacteristic(_latestMachine!.device);
 
     try {
-      await character.write(utf8.encode('${command.send} \r\n'),
-          withoutResponse: true);
+      await character.write(utf8.encode('${command.send} \r\n'), withoutResponse: true);
     } catch (e) {
       const errorCode = 'latest-machine-is-null';
       final message = e.toString();
@@ -358,6 +357,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
   @override
   Future<void> startScan() async {
+    log('[scan-machine-started]', name: fn);
+
     if (latestBluetoothState.isOff) {
       const errorCode = 'bluetooth-is-off';
       final error = CustomError(code: errorCode, message: errorCode);
@@ -372,8 +373,6 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       throw error;
     }
 
-    log('[scan-machine-started]', name: fn);
-
     /// Cek apakah aplikasi sedang kondisi scanning
     /// Jika iya, maka berhentikan dulu agar tidak
     /// menimbulkan scanning tumpang tindih
@@ -386,8 +385,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     log('> no-scanning-condition: passed!', name: fn);
 
     /// Beritahu aplikasi bahwa scanning sedang berjalan
-    _sinkBluetoothState(latestBluetoothState.copyWith(
-        hardwareStatus: BluetoothHardwareStatus.scanning));
+    _sinkBluetoothState(
+        latestBluetoothState.copyWith(hardwareStatus: BluetoothHardwareStatus.scanning));
 
     /// Cari device terkoneksi terlebih dahulu
     ///
@@ -402,8 +401,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       log('> connected-device: $device founded', name: fn);
       final verifiedDevice = _verifyDevice(device);
 
-      if (verifiedDevice != null &&
-          !connectedVerifiedIdDevices.contains(verifiedDevice.id.id)) {
+      if (verifiedDevice != null && !connectedVerifiedIdDevices.contains(verifiedDevice.id.id)) {
         log('> verified-connected-device: $verifiedDevice', name: fn);
         connectedVerifiedDevices.add(verifiedDevice);
         final verifiedMachine = _createMachine(device);
@@ -411,13 +409,12 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
         _machineController.sink.add(verifiedMachine);
       }
     }
-    log('> connected-verified-device: ${connectedVerifiedDevices.length} founded',
-        name: fn);
+    log('> connected-verified-device: ${connectedVerifiedDevices.length} founded', name: fn);
 
     log('> start-scanning', name: fn);
 
     /// Perintah scanning sedang dijalankan
-    ble.scan(timeout: const Duration(seconds: 15)).listen((r) {
+    ble.scan(timeout: const Duration(seconds: 25)).listen((r) {
       final device = r.device;
       log('> device-found: ${device.toString()}', name: fn);
 
@@ -432,8 +429,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       }
     }, onDone: () {
       log('> scanning-finished', name: fn);
-      _sinkBluetoothState(latestBluetoothState.copyWith(
-          hardwareStatus: BluetoothHardwareStatus.on));
+      _sinkBluetoothState(
+          latestBluetoothState.copyWith(hardwareStatus: BluetoothHardwareStatus.on));
     });
   }
 
@@ -447,8 +444,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     /// Buat model mesin yang sudah diverifikasi
     /// dan beritahu aplikasi agar melakukan
     /// pembaharuan pada sisi UI
-    final verifiedMachine = BleRoasterMachine(
-        device: device, modelId: modelId, productionId: productionId);
+    final verifiedMachine =
+        BleRoasterMachine(device: device, modelId: modelId, productionId: productionId);
     _machineController.sink.add(verifiedMachine);
 
     return verifiedMachine;
@@ -474,8 +471,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
     try {
       await ble.stopScan();
-      _sinkBluetoothState(latestBluetoothState.copyWith(
-          hardwareStatus: BluetoothHardwareStatus.on));
+      _sinkBluetoothState(
+          latestBluetoothState.copyWith(hardwareStatus: BluetoothHardwareStatus.on));
     } catch (error) {
       log(error.toString(), name: fn);
     }

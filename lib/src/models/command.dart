@@ -16,6 +16,7 @@ enum CommandCode {
 
   /// New Code
   de,
+  nc,
 }
 
 enum ModeType { manual, auto, unknown }
@@ -44,17 +45,22 @@ abstract class FeedbackCommand extends Command {
 class StartCommand extends ClientCommand {
   final bool value;
   final double? lastIndex;
+  final int? slotId;
 
   const StartCommand(
-      {required this.value, InsightStatus? status, this.lastIndex})
+      {required this.value, InsightStatus? status, this.lastIndex, this.slotId})
       : super(CommandCode.st, status: status ?? const InsightStatus());
 
   @override
-  List<Object?> get props => [...super.props, value];
+  List<Object?> get props => [...super.props, value, slotId];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
+  String get send {
+    final String code = EnumToString.convertToString(this.code).toUpperCase();
+    final String value = this.value ? '1' : '0';
+    final String slotId = this.slotId != null ? this.slotId!.toString() : '';
+    return '{$code:$value$slotId}';
+  }
 }
 
 class ResetCommand extends ClientCommand {
@@ -289,10 +295,39 @@ class AutoCommand extends ClientCommand {
     /// 1 | 1 | 18 - 18
     var cooling = record.control.cooling ? '1' : '0';
 
+    /// 1 | 1 | 19 - 19
+    final dryEnd = record.control.dryEnd ? '1' : '0';
+
     var output =
-        '$bt$btRor$heater$airflow$charge$drum$firstCrack$discharge$cooling';
+        '$bt$btRor$heater$airflow$charge$drum$firstCrack$discharge$cooling$dryEnd';
 
     return '{${EnumToString.convertToString(code).toUpperCase()}:$output}';
+  }
+}
+
+class NotifyCommand extends ClientCommand {
+  final CommandCode notifyCode;
+
+  const NotifyCommand({required this.notifyCode, InsightStatus? status})
+      : super(CommandCode.at, status: status ?? const InsightStatus());
+
+  @override
+  List<Object?> get props => [...super.props, notifyCode];
+
+  @override
+  String get send {
+    late String id;
+
+    switch (notifyCode) {
+      case CommandCode.ic:
+        id = '1';
+        break;
+      default:
+        id = '0';
+        break;
+    }
+
+    return '{NC:$id}';
   }
 }
 
@@ -430,4 +465,11 @@ class FeedbackModeCommand extends FeedbackCommand {
 class FeedbackAutoCommand extends FeedbackCommand {
   const FeedbackAutoCommand({InsightStatus? status})
       : super(CommandCode.at, status: status ?? const InsightStatus());
+}
+
+class FeedbackNotifyCommand extends FeedbackCommand {
+  final dynamic data;
+
+  const FeedbackNotifyCommand({required this.data, InsightStatus? status})
+      : super(CommandCode.nc);
 }

@@ -14,7 +14,8 @@ class _AdditionalData {
 }
 
 class LakoneRepository {
-  final StreamController<Insight> _insightController = StreamController<Insight>();
+  final StreamController<Insight> _insightController =
+      StreamController<Insight>();
   final fn = "repository.lakone";
   final BluetoothBaseAPI<MachineAPI, BluetoothDeviceAPI> _api = BleAPI();
   final _AdditionalData _data = _AdditionalData();
@@ -50,15 +51,17 @@ class LakoneRepository {
     if (Platform.isAndroid) {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      late final bool specialPermission =
-          androidInfo.version.sdkInt != null && androidInfo.version.sdkInt! > 30;
+      late final bool specialPermission = androidInfo.version.sdkInt != null &&
+          androidInfo.version.sdkInt! > 30;
 
       if (specialPermission) {
-        final bool connect = await Permission.bluetoothConnect.request().isGranted;
+        final bool connect =
+            await Permission.bluetoothConnect.request().isGranted;
 
         final bool scan = await Permission.bluetoothScan.request().isGranted;
 
-        final bool advertise = await Permission.bluetoothAdvertise.request().isGranted;
+        final bool advertise =
+            await Permission.bluetoothAdvertise.request().isGranted;
 
         final bool location = await Permission.location.request().isGranted;
 
@@ -78,15 +81,18 @@ class LakoneRepository {
 
   Future<void> stopScan() async => await _api.stopScan();
 
-  Future<MachineAPI> connect(MachineAPI device) async => await _api.connect(device);
+  Future<MachineAPI> connect(MachineAPI device) async =>
+      await _api.connect(device);
 
   Future<MachineAPI> disconnect() async => await _api.disconnect();
 
-  Future<void> sendCommand(ClientCommand command) async => await _api.sendCommand(command);
+  Future<void> sendCommand(ClientCommand command) async =>
+      await _api.sendCommand(command);
 
   Stream<MachineAPI> get onScanReceived => _api.onScanReceived;
 
-  Stream<LakoneBluetoothState> get onBluetoothStateChanged => _api.onBluetoothStateChanged;
+  Stream<LakoneBluetoothState> get onBluetoothStateChanged =>
+      _api.onBluetoothStateChanged;
 
   LakoneBluetoothState get latestBluetoothState => _api.latestBluetoothState;
 
@@ -113,20 +119,24 @@ class LakoneRepository {
         orElse: () => HeaderType.unknown,
       );
     } catch (error) {
-      log('_translator() headerType error [$information]: ${error.toString()}', name: fn);
+      log('_translator() headerType error [$information]: ${error.toString()}',
+          name: fn);
     }
 
     try {
       dataHeader = headerInfo[1].split(',');
     } catch (error) {
-      log('_translator() dataHeader error [$information]: ${error.toString()}', name: fn);
+      log('_translator() dataHeader error [$information]: ${error.toString()}',
+          name: fn);
     }
 
     try {
       /// TODO: ADD STATUS HEADER ON ARDUINO
-      statusHeader = headerInfo.length < 3 ? 0 : int.tryParse(headerInfo[2]) ?? -3;
+      statusHeader =
+          headerInfo.length < 3 ? 0 : int.tryParse(headerInfo[2]) ?? -3;
     } catch (error) {
-      log('_translator() statusHeader error [$information]: ${error.toString()}', name: fn);
+      log('_translator() statusHeader error [$information]: ${error.toString()}',
+          name: fn);
     }
 
     switch (headerType) {
@@ -135,8 +145,8 @@ class LakoneRepository {
         break;
       case HeaderType.command:
         log('read: ${information.toString()}', name: fn);
-        _insightController.sink
-            .add(_handleReceivedCommand(dataInfo: dataHeader, statusInfo: statusHeader));
+        _insightController.sink.add(_handleReceivedCommand(
+            dataInfo: dataHeader, statusInfo: statusHeader));
         break;
       case HeaderType.recordWithRor:
         _insightController.sink.add(Record.fromRoaster(dataHeader, true));
@@ -150,7 +160,8 @@ class LakoneRepository {
   FeedbackCommand _handleReceivedCommand(
       {required List<String> dataInfo, required int statusInfo}) {
     var code = CommandCode.values.firstWhere(
-      (commandCode) => commandCode.toString() == 'CommandCode.' + dataInfo[0].toLowerCase(),
+      (commandCode) =>
+          commandCode.toString() == 'CommandCode.' + dataInfo[0].toLowerCase(),
       orElse: () => CommandCode.uk,
     );
 
@@ -175,7 +186,8 @@ class LakoneRepository {
         return FeedbackChargeCommand(value: value);
       case CommandCode.dr:
         if (dataInfo[1] != '0' && dataInfo[1] != '1') {
-          _insightController.sink.add(ErrorCommand(commandCode: code, errorCode: -1));
+          _insightController.sink
+              .add(ErrorCommand(commandCode: code, errorCode: -1));
         }
 
         var value = dataInfo[1] == '1';
@@ -203,7 +215,8 @@ class LakoneRepository {
         return FeedbackDischargeCommand(value: value);
       case CommandCode.cl:
         if (dataInfo[1] != '0' && dataInfo[1] != '1') {
-          return ErrorCommand(commandCode: code, errorCode: -1, value: dataInfo[1]);
+          return ErrorCommand(
+              commandCode: code, errorCode: -1, value: dataInfo[1]);
         }
 
         var value = dataInfo[1] == '1';
@@ -237,9 +250,13 @@ class LakoneRepository {
           orElse: () => ModeType.unknown,
         );
 
-        return FeedbackModeCommand(type: type, status: InsightStatus(code: statusInfo));
+        return FeedbackModeCommand(
+            type: type, status: InsightStatus(code: statusInfo));
       case CommandCode.at:
         return FeedbackAutoCommand(status: InsightStatus(code: statusInfo));
+      case CommandCode.nc:
+        return FeedbackNotifyCommand(data: dataInfo[1]);
+        break;
       case CommandCode.uk:
         log('unknown command: $dataInfo | $statusInfo');
         return ErrorCommand(commandCode: code, errorCode: -2);

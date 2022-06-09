@@ -1,4 +1,6 @@
-import '../models/device.dart';
+import 'package:roaster_repository/src/models/bluetooth/ble.dart';
 
-typedef MachineAPI = BleRoasterMachine;
-typedef BluetoothDeviceAPI = BleBluetoothDevice;
+import '../models/machine/ble.dart';
+
+typedef MachineAPI = BleMachine;
+typedef BluetoothDeviceAPI = BleBluetooth;

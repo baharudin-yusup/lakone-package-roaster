@@ -1,11 +1,22 @@
-part of 'lakone_base_api.dart';
+import 'dart:convert';
+import 'dart:developer' show log;
+import 'dart:io';
+
+import 'package:flutter_blue/flutter_blue.dart' as ble_api;
+
+import '../../roaster_repository.dart';
+import '../models/bluetooth/ble.dart';
+import '../models/machine/ble.dart';
+import 'base.dart';
+
+// part of 'base.dart';
 
 class _BleAdditionalData {
   final String validLakoneId = 'lkn';
   late ble_api.BluetoothCharacteristic characteristic;
 }
 
-class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
+class BleAPI extends ConnectionBaseAPI<BleMachine, BleBluetooth> {
   final ble = ble_api.FlutterBlue.instance;
   final String validServiceUuid = '0000FFE0-0000-1000-8000-00805F9B34FB';
   final String validCharacteristicUuid = '0000FFE1-0000-1000-8000-00805F9B34FB';
@@ -13,21 +24,21 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
   final _BleAdditionalData _data = _BleAdditionalData();
 
   BleAPI() {
-    ble.isOn.then((isOn) {
-      final BluetoothHardwareStatus hardwareStatus =
-          isOn ? BluetoothHardwareStatus.on : BluetoothHardwareStatus.off;
-      log('>> change-bluetooth-state-to: ${isOn ? "on" : "off"}', name: fn);
-      _sinkBluetoothState(latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
-    });
-
-    ble.state.listen((state) {
-      final isOn = state == ble_api.BluetoothState.on;
-      final BluetoothHardwareStatus hardwareStatus =
-          isOn ? BluetoothHardwareStatus.on : BluetoothHardwareStatus.off;
-
-      log('>> change-bluetooth-state-to: ${isOn ? "on" : "off"}', name: fn);
-      _sinkBluetoothState(latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
-    });
+    // ble.isOn.then((isOn) {
+    //   final BluetoothHardwareStatus hardwareStatus =
+    //       isOn ? BluetoothHardwareStatus.on : BluetoothHardwareStatus.off;
+    //   log('>> change-bluetooth-state-to: ${isOn ? "on" : "off"}', name: fn);
+    //   sinkBluetoothState(latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
+    // });
+    //
+    // ble.state.listen((state) {
+    //   final isOn = state == ble_api.BluetoothState.on;
+    //   final BluetoothHardwareStatus hardwareStatus =
+    //       isOn ? BluetoothHardwareStatus.on : BluetoothHardwareStatus.off;
+    //
+    //   log('>> change-bluetooth-state-to: ${isOn ? "on" : "off"}', name: fn);
+    //   sinkBluetoothState(latestBluetoothState.copyWith(hardwareStatus: hardwareStatus));
+    // });
     /**
      *
      * TODO: Add machine listen state
@@ -36,10 +47,10 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
   }
 
   @override
-  Future<BleRoasterMachine> connect(BleRoasterMachine rawMachine) async {
+  Future<BleMachine> connect(BleMachine rawMachine) async {
     log('[connect-started]', name: fn);
     log('> device: ${rawMachine.device.toString()}', name: fn);
-    _sinkBluetoothState(
+    sinkBluetoothState(
         latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.connecting));
 
     /// Cek apakah mesin sudah terkoneksi sebelumnya
@@ -58,7 +69,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
         final error = CustomError(code: errorCode, message: message);
         log('> $errorCode: $message', level: 1000, name: fn);
 
-        _sinkBluetoothState(latestBluetoothState.toError(
+        sinkBluetoothState(latestBluetoothState.toError(
             error: error, connectionStatus: BluetoothConnectionStatus.idle));
 
         throw error;
@@ -95,7 +106,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
         final error = CustomError(code: errorCode, message: message);
 
-        _sinkBluetoothState(latestBluetoothState.toError(
+        sinkBluetoothState(latestBluetoothState.toError(
             error: error, connectionStatus: BluetoothConnectionStatus.idle));
         throw error;
       }
@@ -118,7 +129,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
         log('> $errorCode: $message', level: 1000, name: fn);
       }
 
-      _sinkBluetoothState(latestBluetoothState.toError(
+      sinkBluetoothState(latestBluetoothState.toError(
           error: error, connectionStatus: BluetoothConnectionStatus.idle));
 
       rethrow;
@@ -132,7 +143,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
         log('> $errorCode: $message', level: 1000, name: fn);
 
         final error = CustomError(code: errorCode, message: message);
-        _sinkBluetoothState(latestBluetoothState.toError(
+        sinkBluetoothState(latestBluetoothState.toError(
             error: error, connectionStatus: BluetoothConnectionStatus.idle));
 
         throw error;
@@ -178,39 +189,38 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
     rawMachine.device.state.listen((state) {
       if (state == ble_api.BluetoothDeviceState.disconnected) {
-        _sinkBluetoothState(latestBluetoothState.copyWith(
+        sinkBluetoothState(latestBluetoothState.copyWith(
             connectionStatus: BluetoothConnectionStatus.disconnected));
       }
     });
 
-    _rawDataController = validCharacteristic.value.listen((rawData) {
+    rawDataController = validCharacteristic.value.listen((rawData) {
       final data = String.fromCharCodes(rawData).trim();
-      // log('> raw-data-from-machine: $data', name: fn);
-      _insightRawDataController.sink.add(data);
+      insightRawDataController.sink.add(data);
     });
 
-    final validMachine = BleRoasterMachine(
+    final validMachine = BleMachine(
       device: rawMachine.device,
       modelId: rawMachine.modelId,
       productionId: rawMachine.productionId,
     );
 
-    _latestMachine = validMachine;
-    _sinkBluetoothState(
+    latestMachine = validMachine;
+    sinkBluetoothState(
         latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.connected));
 
     return validMachine;
   }
 
   @override
-  Future<BleRoasterMachine> disconnect({BleRoasterMachine? machine}) async {
+  Future<BleMachine> disconnect({BleMachine? machine}) async {
     if (latestBluetoothState.isOff) {
       const code = 'bluetooth-is-off';
       log('> $code', name: fn);
 
       final error = CustomError(code: code, message: code);
 
-      _sinkBluetoothState(_latestBluetoothState.toError(
+      sinkBluetoothState(latestBluetoothState.toError(
           error: error,
           connectionStatus: BluetoothConnectionStatus.idle,
           hardwareStatus: BluetoothHardwareStatus.off));
@@ -219,20 +229,20 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     }
 
     log('[start-disconnect]', name: fn);
-    _sinkBluetoothState(
-        _latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.disconnecting));
+    sinkBluetoothState(
+        latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.disconnecting));
 
-    late BleRoasterMachine verifiedMachine;
+    late BleMachine verifiedMachine;
 
     try {
       if (machine != null) {
         log('> using-demanded-machine', name: fn);
         await machine.device.disconnect();
         verifiedMachine = machine;
-      } else if (_latestMachine != null) {
+      } else if (latestMachine != null) {
         log('> using-latest-machine', name: fn);
-        await _latestMachine!.device.disconnect();
-        verifiedMachine = _latestMachine!;
+        await latestMachine!.device.disconnect();
+        verifiedMachine = latestMachine!;
       } else {
         throw 'no-machine';
       }
@@ -242,7 +252,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       final error = CustomError(code: errorCode, message: message);
       log('> $errorCode: $message', level: 1000, name: fn);
 
-      _sinkBluetoothState(latestBluetoothState.toError(
+      sinkBluetoothState(latestBluetoothState.toError(
           error: error, connectionStatus: BluetoothConnectionStatus.idle));
 
       throw error;
@@ -250,7 +260,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
     log('> trying-to-disconnect-subscription', name: fn);
     try {
-      _rawDataController?.cancel();
+      rawDataController?.cancel();
       log('> disconnect-subscription-success', name: fn);
     } catch (e) {
       const errorCode = 'disconnect-subscription-error';
@@ -258,15 +268,15 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       final error = CustomError(code: errorCode, message: message);
       log('> $errorCode: $message', level: 1000, name: fn);
 
-      _sinkBluetoothState(latestBluetoothState.toError(
+      sinkBluetoothState(latestBluetoothState.toError(
           error: error, connectionStatus: BluetoothConnectionStatus.idle));
 
       throw error;
     }
 
     log('> disconnect-success', level: 100, name: fn);
-    _sinkBluetoothState(
-        _latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.disconnected));
+    sinkBluetoothState(
+        latestBluetoothState.copyWith(connectionStatus: BluetoothConnectionStatus.disconnected));
     return verifiedMachine;
   }
 
@@ -287,7 +297,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       log('> $code: $message', name: fn);
 
       final error = CustomError(code: code, message: message);
-      _sinkBluetoothState(latestBluetoothState.toError(
+      sinkBluetoothState(latestBluetoothState.toError(
           error: error, connectionStatus: BluetoothConnectionStatus.idle));
       throw error;
     }
@@ -330,7 +340,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
   Future<void> sendCommand(ClientCommand command) async {
     log('[send-command-started]', name: fn);
 
-    if (_latestMachine == null) {
+    if (latestMachine == null) {
       const errorCode = 'latest-machine-is-null';
       const message = 'latest-machine-is-null';
       log('$errorCode: $message', name: fn, level: 1000);
@@ -340,7 +350,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
       throw error;
     }
 
-    final character = await _searchCharacteristic(_latestMachine!.device);
+    final character = await _searchCharacteristic(latestMachine!.device);
 
     try {
       await character.write(utf8.encode('${command.send} \r\n'), withoutResponse: true);
@@ -365,7 +375,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
       log(errorCode, name: fn);
 
-      _sinkBluetoothState(latestBluetoothState.toError(
+      sinkBluetoothState(latestBluetoothState.toError(
           error: error,
           connectionStatus: BluetoothConnectionStatus.idle,
           hardwareStatus: BluetoothHardwareStatus.off));
@@ -385,7 +395,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     log('> no-scanning-condition: passed!', name: fn);
 
     /// Beritahu aplikasi bahwa scanning sedang berjalan
-    _sinkBluetoothState(
+    sinkBluetoothState(
         latestBluetoothState.copyWith(hardwareStatus: BluetoothHardwareStatus.scanning));
 
     /// Cari device terkoneksi terlebih dahulu
@@ -399,14 +409,14 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     log('> connected-device: ${connectedDevices.length} founded', name: fn);
     for (var device in connectedDevices) {
       log('> connected-device: $device founded', name: fn);
-      final verifiedDevice = _verifyDevice(device);
+      final verifiedDevice = verifyDevice(device);
 
       if (verifiedDevice != null && !connectedVerifiedIdDevices.contains(verifiedDevice.id.id)) {
         log('> verified-connected-device: $verifiedDevice', name: fn);
         connectedVerifiedDevices.add(verifiedDevice);
-        final verifiedMachine = _createMachine(device);
+        final verifiedMachine = createMachine(device);
         connectedVerifiedIdDevices.add(verifiedDevice.id.id);
-        _machineController.sink.add(verifiedMachine);
+        machineController.sink.add(verifiedMachine);
       }
     }
     log('> connected-verified-device: ${connectedVerifiedDevices.length} founded', name: fn);
@@ -420,22 +430,21 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
       if (connectedVerifiedIdDevices.contains(device.id.id) == false) {
         connectedVerifiedIdDevices.add(device.id.id);
-        final verifiedDevice = _verifyDevice(r.device);
+        final verifiedDevice = verifyDevice(r.device);
         if (verifiedDevice != null) {
-          final verifiedMachine = _createMachine(device);
+          final verifiedMachine = createMachine(device);
           connectedVerifiedDevices.add(verifiedDevice);
-          _machineController.sink.add(verifiedMachine);
+          machineController.sink.add(verifiedMachine);
         }
       }
     }, onDone: () {
       log('> scanning-finished', name: fn);
-      _sinkBluetoothState(
-          latestBluetoothState.copyWith(hardwareStatus: BluetoothHardwareStatus.on));
+      sinkBluetoothState(latestBluetoothState.copyWith(hardwareStatus: BluetoothHardwareStatus.on));
     });
   }
 
   @override
-  BleRoasterMachine _createMachine(ble_api.BluetoothDevice device) {
+  BleMachine createMachine(ble_api.BluetoothDevice device) {
     /// Asumsikan ID model dan ID Produksi
     /// Sudah sesuai dengan ketentuan
     final modelId = device.name.substring(3, 7).toLowerCase();
@@ -445,8 +454,8 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
     /// dan beritahu aplikasi agar melakukan
     /// pembaharuan pada sisi UI
     final verifiedMachine =
-        BleRoasterMachine(device: device, modelId: modelId, productionId: productionId);
-    _machineController.sink.add(verifiedMachine);
+        BleMachine(device: device, modelId: modelId, productionId: productionId);
+    machineController.sink.add(verifiedMachine);
 
     return verifiedMachine;
   }
@@ -461,7 +470,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
       final error = CustomError(code: errorCode, message: errorCode);
 
-      _sinkBluetoothState(latestBluetoothState.toError(
+      sinkBluetoothState(latestBluetoothState.toError(
           error: error,
           hardwareStatus: BluetoothHardwareStatus.off,
           connectionStatus: BluetoothConnectionStatus.idle));
@@ -471,8 +480,7 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
 
     try {
       await ble.stopScan();
-      _sinkBluetoothState(
-          latestBluetoothState.copyWith(hardwareStatus: BluetoothHardwareStatus.on));
+      sinkBluetoothState(latestBluetoothState.copyWith(hardwareStatus: BluetoothHardwareStatus.on));
     } catch (error) {
       log(error.toString(), name: fn);
     }
@@ -482,14 +490,14 @@ class BleAPI extends BluetoothBaseAPI<BleRoasterMachine, BleBluetoothDevice> {
   @override
   Future<bool> get bluetoothEnabledStatus async => await ble.isOn;
 
-  @override
-  void _sinkBluetoothState(LakoneBluetoothState state) {
-    super._sinkBluetoothState(state);
-    _bluetoothController.sink.add(state);
-  }
+  // @override
+  // void sinkBluetoothState(LakoneBluetoothState state) {
+  //   super.sinkBluetoothState(state);
+  //   bluetoothController.sink.add(state);
+  // }
 
   @override
-  ble_api.BluetoothDevice? _verifyDevice(ble_api.BluetoothDevice device) {
+  ble_api.BluetoothDevice? verifyDevice(ble_api.BluetoothDevice device) {
     /// Cek apakah panjang nama bluetooth sudah sesuai
     /// Jika panjang nama tidak sama dengan
     /// 12, maka dianggap tidak valid

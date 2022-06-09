@@ -1,4 +1,4 @@
-part of 'lakone_base_api.dart';
+part of 'base.dart';
 
 // class SerialAPI
 //     extends BluetoothBaseAPI<SerialRoasterMachine, serial_api.BluetoothDevice> {

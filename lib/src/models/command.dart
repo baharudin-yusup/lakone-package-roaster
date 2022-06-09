@@ -47,8 +47,7 @@ class StartCommand extends ClientCommand {
   final double? lastIndex;
   final int? slotId;
 
-  const StartCommand(
-      {required this.value, InsightStatus? status, this.lastIndex, this.slotId})
+  const StartCommand({required this.value, InsightStatus? status, this.lastIndex, this.slotId})
       : super(CommandCode.st, status: status ?? const InsightStatus());
 
   @override
@@ -86,8 +85,7 @@ class ChargeCommand extends ClientCommand {
   List<Object?> get props => [...super.props, value];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
+  String get send => '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
 }
 
 class DrumCommand extends ClientCommand {
@@ -100,8 +98,7 @@ class DrumCommand extends ClientCommand {
   List<Object?> get props => [...super.props, value];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
+  String get send => '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
 }
 
 class CrackCommand extends ClientCommand {
@@ -114,8 +111,7 @@ class CrackCommand extends ClientCommand {
   List<Object?> get props => [...super.props, value];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
+  String get send => '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
 }
 
 class DryEndCommand extends ClientCommand {
@@ -128,8 +124,7 @@ class DryEndCommand extends ClientCommand {
   List<Object?> get props => [...super.props, value];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
+  String get send => '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
 }
 
 class DischargeCommand extends ClientCommand {
@@ -142,8 +137,7 @@ class DischargeCommand extends ClientCommand {
   List<Object?> get props => [...super.props, value];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
+  String get send => '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
 }
 
 class CoolingCommand extends ClientCommand {
@@ -156,8 +150,7 @@ class CoolingCommand extends ClientCommand {
   List<Object?> get props => [...super.props, value];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
+  String get send => '{${EnumToString.convertToString(code).toUpperCase()}:${value ? '1' : '0'}}';
 }
 
 class HeaterCommand extends ClientCommand {
@@ -170,8 +163,7 @@ class HeaterCommand extends ClientCommand {
   List<Object?> get props => [...super.props, value];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:$value}';
+  String get send => '{${EnumToString.convertToString(code).toUpperCase()}:$value}';
 }
 
 class AirflowCommand extends ClientCommand {
@@ -184,8 +176,7 @@ class AirflowCommand extends ClientCommand {
   List<Object?> get props => [...super.props, value];
 
   @override
-  String get send =>
-      '{${EnumToString.convertToString(code).toUpperCase()}:$value}';
+  String get send => '{${EnumToString.convertToString(code).toUpperCase()}:$value}';
 }
 
 class InitialConditionCommand extends ClientCommand {
@@ -194,10 +185,7 @@ class InitialConditionCommand extends ClientCommand {
   final double btRor;
 
   const InitialConditionCommand(
-      {required this.et,
-      required this.bt,
-      required this.btRor,
-      InsightStatus? status})
+      {required this.et, required this.bt, required this.btRor, InsightStatus? status})
       : super(CommandCode.ic, status: status ?? const InsightStatus());
 
   @override
@@ -255,10 +243,8 @@ class AutoCommand extends ClientCommand {
 
   @override
   String get send {
-    String bt;
-    String btRor;
-
     /// 300 | 3 | 0 - 2
+    late final String bt;
     if (record.environment.bt > 999) {
       bt = '999';
     } else {
@@ -266,6 +252,7 @@ class AutoCommand extends ClientCommand {
     }
 
     /// -80.0 | 5 | 3 - 7
+    late final String btRor;
     if (record.environment.btRor > 99) {
       btRor = ' 99.0';
     } else if (record.environment.btRor < -99) {
@@ -275,31 +262,30 @@ class AutoCommand extends ClientCommand {
     }
 
     /// 100 | 3 | 8 - 10
-    var heater = record.control.heater.toString().padLeft(3, ' ');
+    final heater = record.control.heater.toString().padLeft(3, ' ');
 
     /// 100 | 3 | 11 - 13
-    var airflow = record.control.airflow.toString().padLeft(3, ' ');
+    final airflow = record.control.airflow.toString().padLeft(3, ' ');
 
     /// 1 | 1 | 14 - 14
-    var charge = record.control.charge ? '1' : '0';
+    final charge = record.control.charge ? '1' : '0';
 
     /// 1 | 1 | 15 - 15
-    var drum = record.control.drum ? '1' : '0';
+    final drum = record.control.drum ? '1' : '0';
 
     /// 1 | 1 | 16 - 16
-    var firstCrack = record.control.firstCrack ? '1' : '0';
+    final firstCrack = record.control.firstCrack ? '1' : '0';
 
     /// 1 | 1 | 17 - 17
-    var discharge = record.control.discharge ? '1' : '0';
+    final discharge = record.control.discharge ? '1' : '0';
 
     /// 1 | 1 | 18 - 18
-    var cooling = record.control.cooling ? '1' : '0';
+    final cooling = record.control.cooling ? '1' : '0';
 
     /// 1 | 1 | 19 - 19
     final dryEnd = record.control.dryEnd ? '1' : '0';
 
-    var output =
-        '$bt$btRor$heater$airflow$charge$drum$firstCrack$discharge$cooling$dryEnd';
+    final output = '$bt$btRor$heater$airflow$charge$drum$firstCrack$discharge$cooling$dryEnd';
 
     return '{${EnumToString.convertToString(code).toUpperCase()}:$output}';
   }
@@ -336,8 +322,7 @@ class NotifyCommand extends ClientCommand {
 class ErrorCommand extends FeedbackCommand {
   final dynamic value;
 
-  ErrorCommand(
-      {required CommandCode commandCode, required errorCode, this.value})
+  ErrorCommand({required CommandCode commandCode, required errorCode, this.value})
       : super(commandCode, status: InsightStatus(code: errorCode));
 }
 
@@ -444,8 +429,7 @@ class FeedbackAirflowCommand extends FeedbackCommand {
 class FeedbackInitialConditionCommand extends FeedbackCommand {
   final bool value;
 
-  const FeedbackInitialConditionCommand(
-      {required this.value, InsightStatus? status})
+  const FeedbackInitialConditionCommand({required this.value, InsightStatus? status})
       : super(CommandCode.ic, status: status ?? const InsightStatus());
 
   @override
@@ -470,6 +454,5 @@ class FeedbackAutoCommand extends FeedbackCommand {
 class FeedbackNotifyCommand extends FeedbackCommand {
   final dynamic data;
 
-  const FeedbackNotifyCommand({required this.data, InsightStatus? status})
-      : super(CommandCode.nc);
+  const FeedbackNotifyCommand({required this.data, InsightStatus? status}) : super(CommandCode.nc);
 }

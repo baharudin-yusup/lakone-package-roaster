@@ -1,6 +1,6 @@
 name: roaster_repository
-description: A Roaster Device Repository
-version: 2.0.1
+description: A Lakone Roaster API Package
+version: 2.1.0
 publish_to: none
 
 environment:
@@ -20,7 +20,7 @@ dependencies:
   equatable: ^2.0.3
   enum_to_string: ^2.0.1
   rxdart: ^0.27.0
-  permission_handler: ^9.2.0
+  permission_handler: 9.2.0
   device_info_plus: ^3.2.2
 
 dev_dependencies:

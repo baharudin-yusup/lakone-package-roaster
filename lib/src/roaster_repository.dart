@@ -55,9 +55,9 @@ class LakoneRepository {
           androidInfo.version.sdkInt != null && androidInfo.version.sdkInt! > 30;
 
       if (specialPermission) {
-        final bool connect = await Permission.bluetoothConnect.request().isGranted;
         final bool scan = await Permission.bluetoothScan.request().isGranted;
         final bool advertise = await Permission.bluetoothAdvertise.request().isGranted;
+        final bool connect = await Permission.bluetoothConnect.request().isGranted;
         final bool location = await Permission.location.request().isGranted;
 
         permissionOk = connect && scan && location && advertise;

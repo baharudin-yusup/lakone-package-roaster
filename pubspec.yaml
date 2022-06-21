@@ -10,10 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_bluetooth_serial:
-    path: packages/flutter_bluetooth_serial-enhanced
-  flutter_blue:
-    path: packages/flutter_blue-enhanced
+  flutter_blue_plus: ^1.1.3
+  flutter_bluetooth_serial: ^0.4.0
+#  flutter_blue:
+#    path: packages/flutter_blue-enhanced
   app_settings: ^4.1.6
 #  app_settings:
 #    path: packages/app_settings-enhanced
@@ -22,6 +22,12 @@ dependencies:
   rxdart: ^0.27.0
   permission_handler: 9.2.0
   device_info_plus: ^3.2.2
+
+dependency_overrides:
+  flutter_bluetooth_serial:
+    git:
+      url: https://github.com/calmh/flutter_bluetooth_serial.git
+      ref: android12
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,6 @@
 name: roaster_repository
 description: A Lakone Roaster API Package
-version: 2.1.0
+version: 2.2.0
 publish_to: none
 
 environment:

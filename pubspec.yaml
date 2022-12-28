@@ -26,7 +26,7 @@ dependencies:
 dependency_overrides:
   flutter_bluetooth_serial:
     git:
-      url: https://github.com/calmh/flutter_bluetooth_serial.git
+      url: https://github.com/safe-sky/flutter_bluetooth_serial.git
       ref: android12
 
 dev_dependencies:

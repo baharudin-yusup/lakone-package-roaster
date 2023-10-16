@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer' show log;
 import 'dart:io';
 
-import 'package:flutter_blue/flutter_blue.dart' as ble_api;
+import 'package:flutter_blue_plus/flutter_blue_plus.dart' as ble_api;
 
 import '../../roaster_repository.dart';
 import '../models/bluetooth/ble.dart';
@@ -17,7 +17,7 @@ class _BleAdditionalData {
 }
 
 class BleAPI extends ConnectionBaseAPI<BleMachine, BleBluetooth> {
-  final ble = ble_api.FlutterBlue.instance;
+  final ble = ble_api.FlutterBluePlus.instance;
   final String validServiceUuid = '0000FFE0-0000-1000-8000-00805F9B34FB';
   final String validCharacteristicUuid = '0000FFE1-0000-1000-8000-00805F9B34FB';
 
